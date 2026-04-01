@@ -22,6 +22,7 @@ import { TournamentController } from './tournament.controller';
     AuthInfrastructureModule,
   ],
   controllers: [TournamentController],
+  exports: [TOURNAMENT_REPOSITORY, TypeOrmModule],
   providers: [
     { provide: TOURNAMENT_REPOSITORY, useClass: TournamentTypeormRepository },
     {
