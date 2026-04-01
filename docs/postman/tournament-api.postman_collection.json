@@ -5,9 +5,11 @@
   },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:3000/api/v1" },
-    { "key": "token", "value": "" },
     { "key": "authToken", "value": "" },
-    { "key": "adminToken", "value": "" }
+    { "key": "adminToken", "value": "" },
+    { "key": "gameId", "value": "" },
+    { "key": "tournamentId", "value": "" },
+    { "key": "fullTournamentId", "value": "" }
   ],
   "item": [
     {
@@ -115,7 +117,20 @@
               "raw": "{\n  \"name\": \"Street Fighter 6\",\n  \"publisher\": \"Capcom\",\n  \"releaseDate\": \"2023-06-02\",\n  \"genre\": \"Fighting\"\n}"
             },
             "description": "Création avec token admin. 201 → { success: true, data: { id, name, ... } }"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('gameId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "POST Create Game — non authentifié (401)",
@@ -176,6 +191,188 @@
               "raw": "{}"
             },
             "description": "Body vide. 400 avec tableau de messages attendu."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tournaments",
+      "item": [
+        {
+          "name": "GET List Tournaments — public",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/tournaments",
+            "description": "Liste publique. 200 → { success: true, data: [] }"
+          }
+        },
+        {
+          "name": "GET List Tournaments — filtre par status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tournaments?status=pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["tournaments"],
+              "query": [{ "key": "status", "value": "pending" }]
+            },
+            "description": "Filtre par status. Valeurs : pending, in_progress, completed."
+          }
+        },
+        {
+          "name": "POST Create Tournament",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{baseUrl}}/tournaments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Summer Cup 2026\",\n  \"gameId\": \"{{gameId}}\",\n  \"maxPlayers\": 4,\n  \"startDate\": \"2026-07-01T10:00:00.000Z\"\n}"
+            },
+            "description": "Créer un tournoi. 201 → { success: true, data: { id, ... } }"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('tournamentId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Tournament by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/tournaments/{{tournamentId}}",
+            "description": "Détails d'un tournoi. 200 → tournament complet."
+          }
+        },
+        {
+          "name": "GET Tournament by ID — inexistant (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/tournaments/00000000-0000-0000-0000-000000000000",
+            "description": "UUID valide mais inexistant. 404 attendu."
+          }
+        },
+        {
+          "name": "GET Tournament by ID — UUID invalide (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/tournaments/not-a-uuid",
+            "description": "UUID invalide. 400 attendu (ParseUUIDPipe)."
+          }
+        },
+        {
+          "name": "PUT Update Tournament",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{baseUrl}}/tournaments/{{tournamentId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Summer Cup 2026 — Updated\"\n}"
+            },
+            "description": "Mise à jour partielle. 200 → tournament mis à jour."
+          }
+        },
+        {
+          "name": "DELETE Tournament",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{baseUrl}}/tournaments/{{tournamentId}}",
+            "description": "Suppression. 200 → { success: true, data: { deleted: true } }"
+          }
+        },
+        {
+          "name": "POST Join Tournament",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{baseUrl}}/tournaments/{{tournamentId}}/join",
+            "description": "Inscription au tournoi. 200 → { success: true, data: { joined: true } }"
+          }
+        },
+        {
+          "name": "POST Join Tournament — double join (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{baseUrl}}/tournaments/{{tournamentId}}/join",
+            "description": "Même joueur, même tournoi. 409 attendu."
+          }
+        },
+        {
+          "name": "POST Join Tournament — non authentifié (401)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/tournaments/{{tournamentId}}/join",
+            "description": "Sans token. 401 attendu."
+          }
+        },
+        {
+          "name": "POST Create Tournament maxPlayers 2 — test plein",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{baseUrl}}/tournaments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mini Cup\",\n  \"gameId\": \"{{gameId}}\",\n  \"maxPlayers\": 2,\n  \"startDate\": \"2026-07-01T10:00:00.000Z\"\n}"
+            },
+            "description": "Tournoi à 2 places max pour tester le cas plein."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.id) {",
+                  "  pm.collectionVariables.set('fullTournamentId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Join Tournament — tournoi plein (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{baseUrl}}/tournaments/{{fullTournamentId}}/join",
+            "description": "Après 2 inscriptions. 422 BusinessRuleViolation attendu."
           }
         }
       ]
