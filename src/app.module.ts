@@ -6,6 +6,7 @@ import { appConfig } from './infrastructure/config/app.config';
 import { envValidationSchema } from './infrastructure/config/env.validation';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { AuthPresentationModule } from './presentation/auth/auth.module';
+import { GameModule } from './presentation/game/game.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AuthPresentationModule } from './presentation/auth/auth.module';
     }),
     DatabaseModule,
     AuthPresentationModule,
+    GameModule,
   ],
   controllers: [AppController],
   providers: [AppService],

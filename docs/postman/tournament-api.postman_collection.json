@@ -5,7 +5,9 @@
   },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:3000/api/v1" },
-    { "key": "token", "value": "" }
+    { "key": "token", "value": "" },
+    { "key": "authToken", "value": "" },
+    { "key": "adminToken", "value": "" }
   ],
   "item": [
     {
@@ -28,8 +30,8 @@
               "script": {
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.data && json.data.token) {",
-                  "  pm.collectionVariables.set('token', json.data.token);",
+                  "if (json.data && json.data.accessToken) {",
+                  "  pm.collectionVariables.set('authToken', json.data.accessToken);",
                   "}"
                 ]
               }
@@ -53,8 +55,8 @@
               "script": {
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.data && json.data.token) {",
-                  "  pm.collectionVariables.set('token', json.data.token);",
+                  "if (json.data && json.data.accessToken) {",
+                  "  pm.collectionVariables.set('authToken', json.data.accessToken);",
                   "}"
                 ]
               }
@@ -83,6 +85,97 @@
               "mode": "raw",
               "raw": "{\n  \"email\": \"player1@example.com\",\n  \"password\": \"wrongpassword\"\n}"
             }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Games",
+      "item": [
+        {
+          "name": "GET List Games — public",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/games",
+            "description": "Liste publique de tous les jeux. 200 → { success: true, data: [] }"
+          }
+        },
+        {
+          "name": "POST Create Game — admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": "{{baseUrl}}/games",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Street Fighter 6\",\n  \"publisher\": \"Capcom\",\n  \"releaseDate\": \"2023-06-02\",\n  \"genre\": \"Fighting\"\n}"
+            },
+            "description": "Création avec token admin. 201 → { success: true, data: { id, name, ... } }"
+          }
+        },
+        {
+          "name": "POST Create Game — non authentifié (401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/games",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Game\",\n  \"publisher\": \"Test\",\n  \"releaseDate\": \"2023-01-01\",\n  \"genre\": \"Action\"\n}"
+            },
+            "description": "Sans token. 401 attendu."
+          }
+        },
+        {
+          "name": "POST Create Game — user non admin (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{baseUrl}}/games",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Game\",\n  \"publisher\": \"Test\",\n  \"releaseDate\": \"2023-01-01\",\n  \"genre\": \"Action\"\n}"
+            },
+            "description": "Token user normal (isAdmin false). 403 attendu."
+          }
+        },
+        {
+          "name": "POST Create Game — nom dupliqué (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": "{{baseUrl}}/games",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Street Fighter 6\",\n  \"publisher\": \"Capcom\",\n  \"releaseDate\": \"2023-06-02\",\n  \"genre\": \"Fighting\"\n}"
+            },
+            "description": "Même nom qu'une création précédente. 409 attendu."
+          }
+        },
+        {
+          "name": "POST Create Game — body invalide (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": "{{baseUrl}}/games",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "description": "Body vide. 400 avec tableau de messages attendu."
           }
         }
       ]
