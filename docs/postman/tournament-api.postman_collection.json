@@ -9,7 +9,8 @@
     { "key": "adminToken", "value": "" },
     { "key": "gameId", "value": "" },
     { "key": "tournamentId", "value": "" },
-    { "key": "fullTournamentId", "value": "" }
+    { "key": "fullTournamentId", "value": "" },
+    { "key": "playerId", "value": "" }
   ],
   "item": [
     {
@@ -373,6 +374,83 @@
             ],
             "url": "{{baseUrl}}/tournaments/{{fullTournamentId}}/join",
             "description": "Après 2 inscriptions. 422 BusinessRuleViolation attendu."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Players",
+      "item": [
+        {
+          "name": "GET List Players — public",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/players",
+            "description": "Liste publique de tous les joueurs. VÉRIFIER : aucun objet ne contient le champ 'password'."
+          }
+        },
+        {
+          "name": "GET Player by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/players/{{playerId}}",
+            "description": "Profil d'un joueur. VÉRIFIER : 'password' absent de la réponse."
+          }
+        },
+        {
+          "name": "GET Player by ID — inexistant (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/players/00000000-0000-0000-0000-000000000000",
+            "description": "UUID valide mais inexistant. 404 attendu."
+          }
+        },
+        {
+          "name": "GET Player by ID — UUID invalide (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/players/not-a-uuid",
+            "description": "UUID invalide. 400 attendu (ParseUUIDPipe)."
+          }
+        },
+        {
+          "name": "GET Player Tournaments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/players/{{playerId}}/tournaments",
+            "description": "Liste des tournois du joueur. 200 → { success: true, data: [...tournaments] }"
+          }
+        },
+        {
+          "name": "GET Player Tournaments — joueur inexistant (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/players/00000000-0000-0000-0000-000000000000/tournaments",
+            "description": "Joueur inexistant. 404 attendu."
+          }
+        },
+        {
+          "name": "GET Player Rankings — placeholder",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/players/rankings",
+            "description": "Placeholder Bonus B3. 200 → { success: true, data: [] }"
+          }
+        },
+        {
+          "name": "GET Player Stats — placeholder",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/players/{{playerId}}/stats",
+            "description": "Placeholder Bonus B3. 200 → { success: true, data: {} }"
           }
         }
       ]
