@@ -1,4 +1,9 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('games')
 export class GameTypeormEntity {
@@ -16,4 +21,7 @@ export class GameTypeormEntity {
 
   @Column({ length: 50 })
   genre!: string;
+
+  @CreateDateColumn()
+  createdAt!: Date;
 }
