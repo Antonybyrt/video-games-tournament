@@ -10,7 +10,8 @@
     { "key": "gameId", "value": "" },
     { "key": "tournamentId", "value": "" },
     { "key": "fullTournamentId", "value": "" },
-    { "key": "playerId", "value": "" }
+    { "key": "playerId", "value": "" },
+    { "key": "matchId", "value": "" }
   ],
   "item": [
     {
@@ -435,6 +436,163 @@
             "description": "Joueur inexistant. 404 attendu."
           }
         },
+        {
+          "name": "GET Player Rankings — placeholder",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/players/rankings",
+            "description": "Placeholder Bonus B3. 200 → { success: true, data: [] }"
+          }
+        },
+        {
+          "name": "GET Player Stats — placeholder",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/players/{{playerId}}/stats",
+            "description": "Placeholder Bonus B3. 200 → { success: true, data: {} }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Matches",
+      "item": [
+        {
+          "name": "GET Tournament Matches",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{baseUrl}}/tournaments/{{tournamentId}}/matches",
+            "description": "Liste les matches d'un tournoi. 200 → { success: true, data: [...matches] }"
+          }
+        },
+        {
+          "name": "GET Tournament Matches — non authentifié (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/tournaments/{{tournamentId}}/matches",
+            "description": "Sans token. 401 attendu."
+          }
+        },
+        {
+          "name": "POST Submit Match Result",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{baseUrl}}/matches/{{matchId}}/result",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"winnerId\": \"{{playerId}}\",\n  \"score\": \"3:1\"\n}"
+            },
+            "description": "Soumet le résultat d'un match. 200 → match avec status COMPLETED."
+          }
+        },
+        {
+          "name": "POST Submit Match Result — score invalide (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{baseUrl}}/matches/{{matchId}}/result",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"winnerId\": \"{{playerId}}\",\n  \"score\": \"trois-un\"\n}"
+            },
+            "description": "Format score invalide (doit être X:Y). 400 attendu."
+          }
+        },
+        {
+          "name": "POST Submit Match Result — winner invalide (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{baseUrl}}/matches/{{matchId}}/result",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"winnerId\": \"00000000-0000-0000-0000-000000000000\",\n  \"score\": \"3:1\"\n}"
+            },
+            "description": "winnerId n'est ni player1 ni player2 du match. 422 BusinessRuleViolation attendu."
+          }
+        },
+        {
+          "name": "POST Submit Match Result — match déjà complété (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{baseUrl}}/matches/{{matchId}}/result",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"winnerId\": \"{{playerId}}\",\n  \"score\": \"3:1\"\n}"
+            },
+            "description": "Relancer après un premier résultat soumis. 422 BusinessRuleViolation attendu."
+          }
+        },
+        {
+          "name": "POST Submit Match Result — non authentifié (401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/matches/{{matchId}}/result",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"winnerId\": \"{{playerId}}\",\n  \"score\": \"3:1\"\n}"
+            },
+            "description": "Sans token. 401 attendu."
+          }
+        },
+        {
+          "name": "POST Submit Match Result — UUID invalide (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{baseUrl}}/matches/not-a-uuid/result",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"winnerId\": \"{{playerId}}\",\n  \"score\": \"3:1\"\n}"
+            },
+            "description": "UUID invalide. 400 attendu (ParseUUIDPipe)."
+          }
+        },
+        {
+          "name": "POST Submit Match Result — match inexistant (404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": "{{baseUrl}}/matches/00000000-0000-0000-0000-000000000000/result",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"winnerId\": \"{{playerId}}\",\n  \"score\": \"3:1\"\n}"
+            },
+            "description": "UUID valide mais inexistant. 404 attendu."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Players_KEEP",
+      "item": [
         {
           "name": "GET Player Rankings — placeholder",
           "request": {

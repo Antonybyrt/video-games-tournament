@@ -13,6 +13,8 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { MatchResponseDto } from '../../application/match/dtos/match-response.dto';
+import { ListTournamentMatchesUseCase } from '../../application/match/use-cases/list-tournament-matches.use-case';
 import { TournamentResponseDto } from '../../application/tournament/dtos/tournament-response.dto';
 import { CreateTournamentDto } from '../../application/tournament/dtos/create-tournament.dto';
 import { UpdateTournamentDto } from '../../application/tournament/dtos/update-tournament.dto';
@@ -25,6 +27,7 @@ import { UpdateTournamentUseCase } from '../../application/tournament/use-cases/
 import { TournamentStatus } from '../../domain/tournament/tournament-status.enum';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { AuthenticatedUser } from '../../infrastructure/auth/authenticated-user.interface';
+import { MatchMapper } from '../match/mappers/match.mapper';
 import { TournamentMapper } from './mappers/tournament.mapper';
 
 @Controller('tournaments')
@@ -36,6 +39,7 @@ export class TournamentController {
     private readonly updateTournamentUseCase: UpdateTournamentUseCase,
     private readonly deleteTournamentUseCase: DeleteTournamentUseCase,
     private readonly joinTournamentUseCase: JoinTournamentUseCase,
+    private readonly listTournamentMatchesUseCase: ListTournamentMatchesUseCase,
   ) {}
 
   @Get()
@@ -92,5 +96,14 @@ export class TournamentController {
   ): Promise<{ joined: boolean }> {
     await this.joinTournamentUseCase.execute(id, req.user.id);
     return { joined: true };
+  }
+
+  @Get(':id/matches')
+  @UseGuards(JwtAuthGuard)
+  async findMatches(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<MatchResponseDto[]> {
+    const matches = await this.listTournamentMatchesUseCase.execute(id);
+    return matches.map((m) => MatchMapper.toResponseDto(m));
   }
 }

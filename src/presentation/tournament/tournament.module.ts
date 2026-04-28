@@ -14,12 +14,14 @@ import { AuthInfrastructureModule } from '../../infrastructure/auth/auth.module'
 import { PlayerTypeormEntity } from '../../infrastructure/repositories/player/player.typeorm-entity';
 import { TournamentTypeormEntity } from '../../infrastructure/repositories/tournament/tournament.typeorm-entity';
 import { TournamentTypeormRepository } from '../../infrastructure/repositories/tournament/tournament.typeorm-repository';
+import { MatchModule } from '../match/match.module';
 import { TournamentController } from './tournament.controller';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([TournamentTypeormEntity, PlayerTypeormEntity]),
     AuthInfrastructureModule,
+    MatchModule,
   ],
   controllers: [TournamentController],
   exports: [TOURNAMENT_REPOSITORY, TypeOrmModule],
