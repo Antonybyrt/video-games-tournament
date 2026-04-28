@@ -1,4 +1,4 @@
-import { IsString, IsUUID, Matches } from 'class-validator';
+import { IsUUID, Matches } from 'class-validator';
 
 export class MatchResultDto {
   @IsUUID()
