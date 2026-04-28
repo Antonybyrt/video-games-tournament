@@ -7,6 +7,7 @@ import { envValidationSchema } from './infrastructure/config/env.validation';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { AuthPresentationModule } from './presentation/auth/auth.module';
 import { GameModule } from './presentation/game/game.module';
+import { MatchModule } from './presentation/match/match.module';
 import { PlayerModule } from './presentation/player/player.module';
 import { TournamentModule } from './presentation/tournament/tournament.module';
 
@@ -22,6 +23,7 @@ import { TournamentModule } from './presentation/tournament/tournament.module';
     DatabaseModule,
     AuthPresentationModule,
     GameModule,
+    MatchModule,
     TournamentModule,
     PlayerModule,
   ],
