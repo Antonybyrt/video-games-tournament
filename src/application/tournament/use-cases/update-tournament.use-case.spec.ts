@@ -29,7 +29,15 @@ const buildMatchRepo = (): jest.Mocked<IMatchRepository> => ({
 });
 
 const buildPlayer = (id: string) =>
-  new PlayerEntity(id, new Date(), `u_${id}`, `${id}@test.com`, 'pw', null, false);
+  new PlayerEntity(
+    id,
+    new Date(),
+    `u_${id}`,
+    `${id}@test.com`,
+    'pw',
+    null,
+    false,
+  );
 
 const buildTournament = (
   playerIds: string[],
@@ -88,7 +96,9 @@ describe('UpdateTournamentUseCase', () => {
     });
 
     it('creates pair-wise round 1 matches for an even player count', async () => {
-      tRepo.findById.mockResolvedValue(buildTournament(['p1', 'p2', 'p3', 'p4']));
+      tRepo.findById.mockResolvedValue(
+        buildTournament(['p1', 'p2', 'p3', 'p4']),
+      );
 
       await useCase.execute('t1', dto);
 
@@ -123,7 +133,16 @@ describe('UpdateTournamentUseCase', () => {
         buildTournament(['p1', 'p2'], TournamentStatus.IN_PROGRESS),
       );
       mRepo.findByTournamentId.mockResolvedValue([
-        new MatchEntity('m1', 't1', 'p1', 'p2', MatchStatus.PENDING, 1, null, null),
+        new MatchEntity(
+          'm1',
+          't1',
+          'p1',
+          'p2',
+          MatchStatus.PENDING,
+          1,
+          null,
+          null,
+        ),
       ]);
 
       await expect(useCase.execute('t1', dto)).rejects.toBeInstanceOf(
@@ -136,7 +155,16 @@ describe('UpdateTournamentUseCase', () => {
         buildTournament(['p1', 'p2'], TournamentStatus.IN_PROGRESS),
       );
       mRepo.findByTournamentId.mockResolvedValue([
-        new MatchEntity('m1', 't1', 'p1', 'p2', MatchStatus.IN_PROGRESS, 1, null, null),
+        new MatchEntity(
+          'm1',
+          't1',
+          'p1',
+          'p2',
+          MatchStatus.IN_PROGRESS,
+          1,
+          null,
+          null,
+        ),
       ]);
 
       await expect(useCase.execute('t1', dto)).rejects.toBeInstanceOf(
@@ -145,11 +173,32 @@ describe('UpdateTournamentUseCase', () => {
     });
 
     it('only checks the last round — earlier pending rounds do not block completion', async () => {
-      const tournament = buildTournament(['p1', 'p2'], TournamentStatus.IN_PROGRESS);
+      const tournament = buildTournament(
+        ['p1', 'p2'],
+        TournamentStatus.IN_PROGRESS,
+      );
       tRepo.findById.mockResolvedValue(tournament);
       mRepo.findByTournamentId.mockResolvedValue([
-        new MatchEntity('m1', 't1', 'p1', 'p2', MatchStatus.PENDING, 1, null, null),
-        new MatchEntity('m2', 't1', 'p1', 'p3', MatchStatus.COMPLETED, 2, '2:0', 'p1'),
+        new MatchEntity(
+          'm1',
+          't1',
+          'p1',
+          'p2',
+          MatchStatus.PENDING,
+          1,
+          null,
+          null,
+        ),
+        new MatchEntity(
+          'm2',
+          't1',
+          'p1',
+          'p3',
+          MatchStatus.COMPLETED,
+          2,
+          '2:0',
+          'p1',
+        ),
       ]);
 
       await useCase.execute('t1', dto);
@@ -162,8 +211,26 @@ describe('UpdateTournamentUseCase', () => {
         buildTournament(['p1', 'p2', 'p3', 'p4'], TournamentStatus.IN_PROGRESS),
       );
       mRepo.findByTournamentId.mockResolvedValue([
-        new MatchEntity('m1', 't1', 'p1', 'p2', MatchStatus.COMPLETED, 1, '2:0', 'p1'),
-        new MatchEntity('m2', 't1', 'p3', 'p4', MatchStatus.COMPLETED, 1, '2:0', 'p3'),
+        new MatchEntity(
+          'm1',
+          't1',
+          'p1',
+          'p2',
+          MatchStatus.COMPLETED,
+          1,
+          '2:0',
+          'p1',
+        ),
+        new MatchEntity(
+          'm2',
+          't1',
+          'p3',
+          'p4',
+          MatchStatus.COMPLETED,
+          1,
+          '2:0',
+          'p3',
+        ),
       ]);
 
       await expect(useCase.execute('t1', dto)).rejects.toBeInstanceOf(
@@ -172,10 +239,22 @@ describe('UpdateTournamentUseCase', () => {
     });
 
     it('sets status to COMPLETED and saves when all last-round matches are done', async () => {
-      const tournament = buildTournament(['p1', 'p2'], TournamentStatus.IN_PROGRESS);
+      const tournament = buildTournament(
+        ['p1', 'p2'],
+        TournamentStatus.IN_PROGRESS,
+      );
       tRepo.findById.mockResolvedValue(tournament);
       mRepo.findByTournamentId.mockResolvedValue([
-        new MatchEntity('m1', 't1', 'p1', 'p2', MatchStatus.COMPLETED, 1, '2:0', 'p1'),
+        new MatchEntity(
+          'm1',
+          't1',
+          'p1',
+          'p2',
+          MatchStatus.COMPLETED,
+          1,
+          '2:0',
+          'p1',
+        ),
       ]);
 
       await useCase.execute('t1', dto);

@@ -13,14 +13,17 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { MatchResponseDto } from '../../application/match/dtos/match-response.dto';
 import { ListTournamentMatchesUseCase } from '../../application/match/use-cases/list-tournament-matches.use-case';
 import { TournamentResponseDto } from '../../application/tournament/dtos/tournament-response.dto';
+import { TournamentBracketDto } from '../../application/tournament/dtos/tournament-bracket.dto';
 import { CreateTournamentDto } from '../../application/tournament/dtos/create-tournament.dto';
 import { UpdateTournamentDto } from '../../application/tournament/dtos/update-tournament.dto';
 import { CreateTournamentUseCase } from '../../application/tournament/use-cases/create-tournament.use-case';
 import { DeleteTournamentUseCase } from '../../application/tournament/use-cases/delete-tournament.use-case';
 import { GetTournamentUseCase } from '../../application/tournament/use-cases/get-tournament.use-case';
+import { GetTournamentBracketUseCase } from '../../application/tournament/use-cases/get-tournament-bracket.use-case';
 import { JoinTournamentUseCase } from '../../application/tournament/use-cases/join-tournament.use-case';
 import { ListTournamentsUseCase } from '../../application/tournament/use-cases/list-tournaments.use-case';
 import { UpdateTournamentUseCase } from '../../application/tournament/use-cases/update-tournament.use-case';
@@ -36,6 +39,7 @@ export class TournamentController {
     private readonly listTournamentsUseCase: ListTournamentsUseCase,
     private readonly createTournamentUseCase: CreateTournamentUseCase,
     private readonly getTournamentUseCase: GetTournamentUseCase,
+    private readonly getTournamentBracketUseCase: GetTournamentBracketUseCase,
     private readonly updateTournamentUseCase: UpdateTournamentUseCase,
     private readonly deleteTournamentUseCase: DeleteTournamentUseCase,
     private readonly joinTournamentUseCase: JoinTournamentUseCase,
@@ -54,6 +58,7 @@ export class TournamentController {
   @Post()
   @HttpCode(201)
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   async create(
     @Body() dto: CreateTournamentDto,
   ): Promise<TournamentResponseDto> {
@@ -71,6 +76,7 @@ export class TournamentController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateTournamentDto,
@@ -81,6 +87,7 @@ export class TournamentController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ deleted: boolean }> {
@@ -90,6 +97,7 @@ export class TournamentController {
 
   @Post(':id/join')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   async join(
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: { user: AuthenticatedUser },
@@ -100,10 +108,20 @@ export class TournamentController {
 
   @Get(':id/matches')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   async findMatches(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<MatchResponseDto[]> {
     const matches = await this.listTournamentMatchesUseCase.execute(id);
     return matches.map((m) => MatchMapper.toResponseDto(m));
+  }
+
+  @Get(':id/bracket')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async findBracket(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<TournamentBracketDto> {
+    return this.getTournamentBracketUseCase.execute(id);
   }
 }

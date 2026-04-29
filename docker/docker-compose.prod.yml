@@ -1,6 +1,6 @@
 services:
   migrate:
-    image: ${APP_IMAGE:-ghcr.io/servald/video-games-tournament/api:latest}
+    image: ghcr.io/servald/video-games-tournament/api:0.0.1
     container_name: tournament_migrate_prod
     command: node node_modules/typeorm/cli.js migration:run -d dist/infrastructure/database/typeorm.config.js
     env_file:
@@ -11,7 +11,7 @@ services:
     restart: "no"
 
   app:
-    image: ${APP_IMAGE:-ghcr.io/servald/video-games-tournament/api:latest}
+    image: ghcr.io/servald/video-games-tournament/api:0.0.1
     container_name: tournament_app_prod
     ports:
       - '3000:3000'

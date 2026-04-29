@@ -16,6 +16,7 @@ import { GetPlayerTournamentsUseCase } from '../../application/player/use-cases/
 import { GetPlayerUseCase } from '../../application/player/use-cases/get-player.use-case';
 import { ListPlayersUseCase } from '../../application/player/use-cases/list-players.use-case';
 import { TournamentResponseDto } from '../../application/tournament/dtos/tournament-response.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { TournamentMapper } from '../tournament/mappers/tournament.mapper';
 import { PlayerMapper } from './mappers/player.mapper';
@@ -68,6 +69,7 @@ export class PlayerController {
   @Delete(':id')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<{ deleted: boolean }> {

@@ -6,6 +6,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { CreateGameDto } from '../../application/game/dtos/create-game.dto';
 import { GameResponseDto } from '../../application/game/dtos/game-response.dto';
 import { CreateGameUseCase } from '../../application/game/use-cases/create-game.use-case';
@@ -32,6 +33,7 @@ export class GameController {
   @HttpCode(201)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
+  @ApiBearerAuth()
   async create(@Body() dto: CreateGameDto): Promise<GameResponseDto> {
     const game = await this.createGameUseCase.execute(dto);
     return GameMapper.toResponseDto(game);

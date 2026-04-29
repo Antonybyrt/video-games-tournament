@@ -30,10 +30,27 @@ const buildTournamentRepo = (): jest.Mocked<ITournamentRepository> => ({
   addPlayer: jest.fn(),
 });
 
-const player = new PlayerEntity('p1', new Date(), 'user', 'u@test.com', 'pw', null, false);
+const player = new PlayerEntity(
+  'p1',
+  new Date(),
+  'user',
+  'u@test.com',
+  'pw',
+  null,
+  false,
+);
 
 const buildTournament = (status: TournamentStatus) =>
-  new TournamentEntity('t1', new Date(), 'Tour', 'g1', 8, new Date(), status, []);
+  new TournamentEntity(
+    't1',
+    new Date(),
+    'Tour',
+    'g1',
+    8,
+    new Date(),
+    status,
+    [],
+  );
 
 describe('DeletePlayerUseCase', () => {
   let playerRepo: jest.Mocked<IPlayerRepository>;

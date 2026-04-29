@@ -39,10 +39,12 @@ describe('SubmitMatchResultUseCase', () => {
   });
 
   it('throws BusinessRuleDomainException when the winner is not a participant', async () => {
-    repo.findById.mockResolvedValue(makeMatch('m1', 'p1', 'p2', MatchStatus.IN_PROGRESS, 1));
-    await expect(useCase.execute('m1', 'stranger', '2:1')).rejects.toBeInstanceOf(
-      BusinessRuleDomainException,
+    repo.findById.mockResolvedValue(
+      makeMatch('m1', 'p1', 'p2', MatchStatus.IN_PROGRESS, 1),
     );
+    await expect(
+      useCase.execute('m1', 'stranger', '2:1'),
+    ).rejects.toBeInstanceOf(BusinessRuleDomainException);
   });
 
   it('marks the match COMPLETED and persists it', async () => {
@@ -72,7 +74,15 @@ describe('SubmitMatchResultUseCase', () => {
 
     it('creates round 2 matches when all real matches in round 1 complete', async () => {
       const m1 = makeMatch('m1', 'p1', 'p2', MatchStatus.IN_PROGRESS, 1);
-      const m2 = makeMatch('m2', 'p3', 'p4', MatchStatus.COMPLETED, 1, 'p3', '2:0');
+      const m2 = makeMatch(
+        'm2',
+        'p3',
+        'p4',
+        MatchStatus.COMPLETED,
+        1,
+        'p3',
+        '2:0',
+      );
       repo.findById.mockResolvedValue(m1);
       // Return both matches after m1 is submitted (m1 becomes COMPLETED via submitResult)
       repo.findByTournamentId.mockImplementation(async () => [
@@ -86,7 +96,10 @@ describe('SubmitMatchResultUseCase', () => {
       expect(repo.save).toHaveBeenCalledTimes(2);
       const lastSave = repo.save.mock.calls[1][0];
       expect(lastSave.round).toBe(2);
-      expect([lastSave.player1Id, lastSave.player2Id].sort()).toEqual(['p1', 'p3']);
+      expect([lastSave.player1Id, lastSave.player2Id].sort()).toEqual([
+        'p1',
+        'p3',
+      ]);
     });
 
     it('does not advance when some real matches in the round are still pending', async () => {

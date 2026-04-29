@@ -73,7 +73,9 @@ export class UpdateTournamentUseCase {
       // The final round must have exactly 1 winner
       if (allMatches.length > 0) {
         const lastRound = Math.max(...allMatches.map((m) => m.round));
-        const lastRoundMatches = allMatches.filter((m) => m.round === lastRound);
+        const lastRoundMatches = allMatches.filter(
+          (m) => m.round === lastRound,
+        );
         const winners = lastRoundMatches
           .map((m) => m.winnerId)
           .filter((id): id is string => id !== null);

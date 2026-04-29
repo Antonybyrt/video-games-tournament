@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { GetMatchUseCase } from '../../application/match/use-cases/get-match.use-case';
 import { ListTournamentMatchesUseCase } from '../../application/match/use-cases/list-tournament-matches.use-case';
 import { SubmitMatchResultUseCase } from '../../application/match/use-cases/submit-match-result.use-case';
 import {
@@ -26,6 +27,11 @@ import { MatchController } from './match.controller';
   exports: [MATCH_REPOSITORY, ListTournamentMatchesUseCase],
   providers: [
     { provide: MATCH_REPOSITORY, useClass: MatchTypeormRepository },
+    {
+      provide: GetMatchUseCase,
+      useFactory: (repo: IMatchRepository) => new GetMatchUseCase(repo),
+      inject: [MATCH_REPOSITORY],
+    },
     {
       provide: ListTournamentMatchesUseCase,
       useFactory: (repo: IMatchRepository) =>

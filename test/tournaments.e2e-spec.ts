@@ -199,8 +199,8 @@ describe('Tournaments (e2e)', () => {
     });
   });
 
-  describe('POST /tournaments/:id/start', () => {
-    it('generates bracket matches', async () => {
+  describe('PUT /tournaments/:id — start (status: in_progress)', () => {
+    it('generates bracket matches when tournament starts', async () => {
       const tournament = await createTournament(testApp, { maxPlayers: 4 });
       for (let i = 0; i < 4; i++) {
         const p = await registerUser(testApp);
@@ -211,13 +211,69 @@ describe('Tournaments (e2e)', () => {
       }
 
       const res = await request(testApp.app.getHttpServer())
-        .post(`/api/v1/tournaments/${tournament.id}/start`)
+        .put(`/api/v1/tournaments/${tournament.id}`)
         .set('Authorization', `Bearer ${tournament.ownerToken}`)
-        .expect(201);
+        .send({ status: 'in_progress' })
+        .expect(200);
 
-      expect(Array.isArray(res.body.data)).toBe(true);
-      expect(res.body.data.length).toBeGreaterThan(0);
-      expect(res.body.data[0]).toHaveProperty('round');
+      expect(res.body.data.status).toBe('in_progress');
+    });
+
+    it('rejects starting with fewer than 2 players (422)', async () => {
+      const tournament = await createTournament(testApp, { maxPlayers: 4 });
+      await request(testApp.app.getHttpServer())
+        .put(`/api/v1/tournaments/${tournament.id}`)
+        .set('Authorization', `Bearer ${tournament.ownerToken}`)
+        .send({ status: 'in_progress' })
+        .expect(422);
+    });
+
+    it('rejects starting an already started tournament (422)', async () => {
+      const tournament = await createTournament(testApp, { maxPlayers: 4 });
+      for (let i = 0; i < 4; i++) {
+        const p = await registerUser(testApp);
+        await request(testApp.app.getHttpServer())
+          .post(`/api/v1/tournaments/${tournament.id}/join`)
+          .set('Authorization', `Bearer ${p.accessToken}`)
+          .expect(201);
+      }
+      await request(testApp.app.getHttpServer())
+        .put(`/api/v1/tournaments/${tournament.id}`)
+        .set('Authorization', `Bearer ${tournament.ownerToken}`)
+        .send({ status: 'in_progress' })
+        .expect(200);
+
+      // Second attempt must fail
+      await request(testApp.app.getHttpServer())
+        .put(`/api/v1/tournaments/${tournament.id}`)
+        .set('Authorization', `Bearer ${tournament.ownerToken}`)
+        .send({ status: 'in_progress' })
+        .expect(422);
+    });
+  });
+
+  describe('PUT /tournaments/:id — complete (status: completed)', () => {
+    it('rejects completing a tournament with unresolved matches (422)', async () => {
+      const tournament = await createTournament(testApp, { maxPlayers: 4 });
+      for (let i = 0; i < 4; i++) {
+        const p = await registerUser(testApp);
+        await request(testApp.app.getHttpServer())
+          .post(`/api/v1/tournaments/${tournament.id}/join`)
+          .set('Authorization', `Bearer ${p.accessToken}`)
+          .expect(201);
+      }
+      await request(testApp.app.getHttpServer())
+        .put(`/api/v1/tournaments/${tournament.id}`)
+        .set('Authorization', `Bearer ${tournament.ownerToken}`)
+        .send({ status: 'in_progress' })
+        .expect(200);
+
+      // Try to complete without resolving any match
+      await request(testApp.app.getHttpServer())
+        .put(`/api/v1/tournaments/${tournament.id}`)
+        .set('Authorization', `Bearer ${tournament.ownerToken}`)
+        .send({ status: 'completed' })
+        .expect(422);
     });
   });
 
@@ -231,10 +287,104 @@ describe('Tournaments (e2e)', () => {
       expect(res.body.data).toEqual([]);
     });
 
+    it('returns matches after tournament starts', async () => {
+      const tournament = await createTournament(testApp, { maxPlayers: 4 });
+      for (let i = 0; i < 4; i++) {
+        const p = await registerUser(testApp);
+        await request(testApp.app.getHttpServer())
+          .post(`/api/v1/tournaments/${tournament.id}/join`)
+          .set('Authorization', `Bearer ${p.accessToken}`)
+          .expect(201);
+      }
+      await request(testApp.app.getHttpServer())
+        .put(`/api/v1/tournaments/${tournament.id}`)
+        .set('Authorization', `Bearer ${tournament.ownerToken}`)
+        .send({ status: 'in_progress' })
+        .expect(200);
+
+      const res = await request(testApp.app.getHttpServer())
+        .get(`/api/v1/tournaments/${tournament.id}/matches`)
+        .set('Authorization', `Bearer ${tournament.ownerToken}`)
+        .expect(200);
+
+      expect(res.body.data.length).toBeGreaterThan(0);
+      expect(res.body.data[0]).toHaveProperty('round');
+      expect(res.body.data[0]).toHaveProperty('player1Id');
+      expect(res.body.data[0]).toHaveProperty('player2Id');
+    });
+
     it('rejects unauthenticated requests (401)', async () => {
       const tournament = await createTournament(testApp);
       await request(testApp.app.getHttpServer())
         .get(`/api/v1/tournaments/${tournament.id}/matches`)
+        .expect(401);
+    });
+  });
+
+  describe('GET /tournaments/:id/bracket', () => {
+    it('returns an empty bracket before the tournament starts', async () => {
+      const tournament = await createTournament(testApp);
+      const res = await request(testApp.app.getHttpServer())
+        .get(`/api/v1/tournaments/${tournament.id}/bracket`)
+        .set('Authorization', `Bearer ${tournament.ownerToken}`)
+        .expect(200);
+
+      expect(res.body.data).toMatchObject({
+        tournamentId: tournament.id,
+        totalRounds: 0,
+        rounds: [],
+        finalWinnerId: null,
+      });
+    });
+
+    it('returns rounds with matches after the tournament starts', async () => {
+      const tournament = await createTournament(testApp, { maxPlayers: 4 });
+      for (let i = 0; i < 4; i++) {
+        const p = await registerUser(testApp);
+        await request(testApp.app.getHttpServer())
+          .post(`/api/v1/tournaments/${tournament.id}/join`)
+          .set('Authorization', `Bearer ${p.accessToken}`)
+          .expect(201);
+      }
+      await request(testApp.app.getHttpServer())
+        .put(`/api/v1/tournaments/${tournament.id}`)
+        .set('Authorization', `Bearer ${tournament.ownerToken}`)
+        .send({ status: 'in_progress' })
+        .expect(200);
+
+      const res = await request(testApp.app.getHttpServer())
+        .get(`/api/v1/tournaments/${tournament.id}/bracket`)
+        .set('Authorization', `Bearer ${tournament.ownerToken}`)
+        .expect(200);
+
+      const bracket = res.body.data;
+      expect(bracket.tournamentId).toBe(tournament.id);
+      expect(bracket.totalRounds).toBeGreaterThan(0);
+      expect(bracket.rounds[0].round).toBe(1);
+      expect(bracket.rounds[0].matches.length).toBeGreaterThan(0);
+      const firstMatch = bracket.rounds[0].matches[0];
+      expect(firstMatch).toHaveProperty('id');
+      expect(firstMatch).toHaveProperty('player1Id');
+      expect(firstMatch).toHaveProperty('player2Id');
+      expect(firstMatch).toHaveProperty('isBye');
+      expect(firstMatch).toHaveProperty('status');
+      expect(firstMatch).toHaveProperty('score');
+      expect(firstMatch).toHaveProperty('winnerId');
+      expect(bracket.finalWinnerId).toBeNull();
+    });
+
+    it('returns 404 for an unknown tournament', async () => {
+      const user = await registerUser(testApp);
+      await request(testApp.app.getHttpServer())
+        .get('/api/v1/tournaments/00000000-0000-0000-0000-000000000000/bracket')
+        .set('Authorization', `Bearer ${user.accessToken}`)
+        .expect(404);
+    });
+
+    it('rejects unauthenticated requests (401)', async () => {
+      const tournament = await createTournament(testApp);
+      await request(testApp.app.getHttpServer())
+        .get(`/api/v1/tournaments/${tournament.id}/bracket`)
         .expect(401);
     });
   });

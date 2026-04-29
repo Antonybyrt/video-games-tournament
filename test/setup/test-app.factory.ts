@@ -1,7 +1,7 @@
 import { config as loadEnv } from 'dotenv';
 import { resolve } from 'path';
 
-loadEnv({ path: resolve(__dirname, '..', '..', '.env.test') });
+loadEnv({ path: resolve(__dirname, '..', '..', '.env.test'), override: true });
 process.env.NODE_ENV = 'test';
 
 import { INestApplication } from '@nestjs/common';

@@ -25,15 +25,21 @@ async function setupStartedTournament(testApp: TestApp): Promise<BracketSetup> {
       .set('Authorization', `Bearer ${p.accessToken}`)
       .expect(201);
   }
-  const startRes = await request(testApp.app.getHttpServer())
-    .post(`/api/v1/tournaments/${tournament.id}/start`)
+  await request(testApp.app.getHttpServer())
+    .put(`/api/v1/tournaments/${tournament.id}`)
     .set('Authorization', `Bearer ${tournament.ownerToken}`)
-    .expect(201);
+    .send({ status: 'in_progress' })
+    .expect(200);
+
+  const matchesRes = await request(testApp.app.getHttpServer())
+    .get(`/api/v1/tournaments/${tournament.id}/matches`)
+    .set('Authorization', `Bearer ${tournament.ownerToken}`)
+    .expect(200);
 
   return {
     tournamentId: tournament.id,
     ownerToken: tournament.ownerToken,
-    matches: startRes.body.data,
+    matches: matchesRes.body.data,
     players,
   };
 }

@@ -21,7 +21,7 @@ export class SubmitMatchResultUseCase {
     if (!match) {
       throw new NotFoundDomainException('Match not found');
     }
-    if(match.status !== MatchStatus.IN_PROGRESS) {
+    if (match.status !== MatchStatus.IN_PROGRESS) {
       throw new BusinessRuleDomainException(
         'Match must be in in-progress status to submit result',
       );

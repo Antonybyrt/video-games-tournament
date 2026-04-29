@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CreateTournamentUseCase } from '../../application/tournament/use-cases/create-tournament.use-case';
 import { DeleteTournamentUseCase } from '../../application/tournament/use-cases/delete-tournament.use-case';
 import { GetTournamentUseCase } from '../../application/tournament/use-cases/get-tournament.use-case';
+import { GetTournamentBracketUseCase } from '../../application/tournament/use-cases/get-tournament-bracket.use-case';
 import { JoinTournamentUseCase } from '../../application/tournament/use-cases/join-tournament.use-case';
 import { ListTournamentsUseCase } from '../../application/tournament/use-cases/list-tournaments.use-case';
 import { UpdateTournamentUseCase } from '../../application/tournament/use-cases/update-tournament.use-case';
@@ -44,6 +45,12 @@ import { TournamentController } from './tournament.controller';
       useFactory: (repo: ITournamentRepository) =>
         new GetTournamentUseCase(repo),
       inject: [TOURNAMENT_REPOSITORY],
+    },
+    {
+      provide: GetTournamentBracketUseCase,
+      useFactory: (tRepo: ITournamentRepository, mRepo: IMatchRepository) =>
+        new GetTournamentBracketUseCase(tRepo, mRepo),
+      inject: [TOURNAMENT_REPOSITORY, MATCH_REPOSITORY],
     },
     {
       provide: ListTournamentsUseCase,
