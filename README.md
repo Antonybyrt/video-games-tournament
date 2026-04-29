@@ -20,15 +20,13 @@ pnpm install
 # 1. Demarrer la base de donnees
 docker compose -f docker/docker-compose.dev.yml --env-file .env.dev up -d db
 
-# 2. Attendre que le healthcheck passe (quelques secondes), puis generer la migration initiale
-pnpm migration:generate src/infrastructure/database/migrations/InitialSchema
-
-# 3. Appliquer la migration
-pnpm migration:run
-
-# 4. Demarrer l'API
+# 2. Demarrer l'API
 pnpm start:dev
 ```
+
+> **En mode `development` (`NODE_ENV=development`), TypeORM synchronise automatiquement
+> le schema avec les entites au demarrage — aucune migration a executer.**
+> Les migrations ne sont necessaires qu'en production (voir [Docker](docker/README.md)).
 
 L'API est accessible sur http://localhost:3000/api/v1
 

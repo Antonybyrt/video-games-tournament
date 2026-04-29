@@ -2,7 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PlayerEntity } from '../../../domain/player/player.entity';
-import { IPlayerRepository } from '../../../domain/player/player.repository.interface';
+import {
+  IPlayerRepository,
+  PlayerRankingRow,
+  PlayerStats,
+} from '../../../domain/player/player.repository.interface';
+import { MatchStatus } from '../../../domain/match/match-status.enum';
 import { PlayerTypeormEntity } from './player.typeorm-entity';
 
 @Injectable()
@@ -36,6 +41,43 @@ export class PlayerTypeormRepository implements IPlayerRepository {
     const entity = this.toPersistence(player);
     const saved = await this.repo.save(entity);
     return this.toDomain(saved);
+  }
+
+  async findStats(playerId: string): Promise<PlayerStats> {
+    const totalRow = await this.repo.manager
+      .createQueryBuilder()
+      .select('COUNT(*)', 'total')
+      .from('matches', 'm')
+      .where(
+        '(m.player1_id = :id OR m.player2_id = :id) AND m.status = :s',
+        { id: playerId, s: MatchStatus.COMPLETED },
+      )
+      .getRawOne<{ total: string }>();
+
+    const winsRow = await this.repo.manager
+      .createQueryBuilder()
+      .select('COUNT(*)', 'wins')
+      .from('matches', 'm')
+      .where('m.winner_id = :id', { id: playerId })
+      .getRawOne<{ wins: string }>();
+
+    return {
+      totalMatches: parseInt(totalRow?.total ?? '0', 10),
+      wins: parseInt(winsRow?.wins ?? '0', 10),
+    };
+  }
+
+  async findRankings(): Promise<PlayerRankingRow[]> {
+    const players = await this.repo.find();
+
+    const rows = await Promise.all(
+      players.map(async (p) => {
+        const stats = await this.findStats(p.id);
+        return { player: this.toDomain(p), ...stats };
+      }),
+    );
+
+    return rows;
   }
 
   private toDomain(entity: PlayerTypeormEntity): PlayerEntity {

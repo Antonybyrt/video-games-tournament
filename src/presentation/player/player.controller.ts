@@ -1,5 +1,8 @@
 import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
+import { PlayerStatsDto } from '../../application/player/dtos/player-stats.dto';
 import { PlayerResponseDto } from '../../application/player/dtos/player-response.dto';
+import { GetGlobalRankingsUseCase } from '../../application/player/use-cases/get-global-rankings.use-case';
+import { GetPlayerStatsUseCase } from '../../application/player/use-cases/get-player-stats.use-case';
 import { GetPlayerTournamentsUseCase } from '../../application/player/use-cases/get-player-tournaments.use-case';
 import { GetPlayerUseCase } from '../../application/player/use-cases/get-player.use-case';
 import { ListPlayersUseCase } from '../../application/player/use-cases/list-players.use-case';
@@ -13,11 +16,13 @@ export class PlayerController {
     private readonly listPlayersUseCase: ListPlayersUseCase,
     private readonly getPlayerUseCase: GetPlayerUseCase,
     private readonly getPlayerTournamentsUseCase: GetPlayerTournamentsUseCase,
+    private readonly getPlayerStatsUseCase: GetPlayerStatsUseCase,
+    private readonly getGlobalRankingsUseCase: GetGlobalRankingsUseCase,
   ) {}
 
   @Get('rankings')
-  getRankings(): [] {
-    return [];
+  async getRankings(): Promise<PlayerStatsDto[]> {
+    return this.getGlobalRankingsUseCase.execute();
   }
 
   @Get()
@@ -27,9 +32,10 @@ export class PlayerController {
   }
 
   @Get(':id/stats')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getStats(@Param('id', ParseUUIDPipe) _id: string): Record<string, never> {
-    return {};
+  async getStats(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<PlayerStatsDto> {
+    return this.getPlayerStatsUseCase.execute(id);
   }
 
   @Get(':id')

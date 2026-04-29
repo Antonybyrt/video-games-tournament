@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import { MatchResponseDto } from '../../application/match/dtos/match-response.dto';
 import { ListTournamentMatchesUseCase } from '../../application/match/use-cases/list-tournament-matches.use-case';
+import { StartTournamentUseCase } from '../../application/match/use-cases/start-tournament.use-case';
 import { TournamentResponseDto } from '../../application/tournament/dtos/tournament-response.dto';
 import { CreateTournamentDto } from '../../application/tournament/dtos/create-tournament.dto';
 import { UpdateTournamentDto } from '../../application/tournament/dtos/update-tournament.dto';
@@ -40,6 +41,7 @@ export class TournamentController {
     private readonly deleteTournamentUseCase: DeleteTournamentUseCase,
     private readonly joinTournamentUseCase: JoinTournamentUseCase,
     private readonly listTournamentMatchesUseCase: ListTournamentMatchesUseCase,
+    private readonly startTournamentUseCase: StartTournamentUseCase,
   ) {}
 
   @Get()
@@ -96,6 +98,15 @@ export class TournamentController {
   ): Promise<{ joined: boolean }> {
     await this.joinTournamentUseCase.execute(id, req.user.id);
     return { joined: true };
+  }
+
+  @Post(':id/start')
+  @UseGuards(JwtAuthGuard)
+  async start(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<MatchResponseDto[]> {
+    const matches = await this.startTournamentUseCase.execute(id);
+    return matches.map((m) => MatchMapper.toResponseDto(m));
   }
 
   @Get(':id/matches')

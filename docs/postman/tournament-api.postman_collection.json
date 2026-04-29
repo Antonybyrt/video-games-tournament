@@ -437,21 +437,21 @@
           }
         },
         {
-          "name": "GET Player Rankings — placeholder",
+          "name": "GET Player Rankings",
           "request": {
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/players/rankings",
-            "description": "Placeholder Bonus B3. 200 → { success: true, data: [] }"
+            "description": "Classement global des joueurs trié par winRate décroissant. 200 → { success: true, data: [{ playerId, totalMatches, wins, losses, winRate }] }"
           }
         },
         {
-          "name": "GET Player Stats — placeholder",
+          "name": "GET Player Stats",
           "request": {
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/players/{{playerId}}/stats",
-            "description": "Placeholder Bonus B3. 200 → { success: true, data: {} }"
+            "description": "Statistiques d'un joueur. 200 → { success: true, data: { playerId, totalMatches, wins, losses, winRate } }. 404 si joueur inexistant."
           }
         }
       ]
@@ -594,21 +594,21 @@
       "name": "Players_KEEP",
       "item": [
         {
-          "name": "GET Player Rankings — placeholder",
+          "name": "GET Player Rankings",
           "request": {
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/players/rankings",
-            "description": "Placeholder Bonus B3. 200 → { success: true, data: [] }"
+            "description": "Classement global des joueurs trié par winRate décroissant. 200 → { success: true, data: [{ playerId, totalMatches, wins, losses, winRate }] }"
           }
         },
         {
-          "name": "GET Player Stats — placeholder",
+          "name": "GET Player Stats",
           "request": {
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/players/{{playerId}}/stats",
-            "description": "Placeholder Bonus B3. 200 → { success: true, data: {} }"
+            "description": "Statistiques d'un joueur. 200 → { success: true, data: { playerId, totalMatches, wins, losses, winRate } }. 404 si joueur inexistant."
           }
         }
       ]
