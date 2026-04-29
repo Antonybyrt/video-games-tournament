@@ -1,13 +1,25 @@
 services:
+  app:
+    image: node:23-alpine
+    container_name: tournament_app_dev
+    volumes:
+      - ../:/home/node
+    ports:
+      - '3000:3000'
+    env_file:
+      - ../.env.dev
+    depends_on:
+      db:
+        condition: service_healthy
+    tty: true
+    stdin_open: true
+    working_dir: /home/node
+
   db:
     image: postgres:16-alpine
     container_name: tournament_db_dev
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - '5432:5432'
+    env_file:
+      - ../.env.dev
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     healthcheck:

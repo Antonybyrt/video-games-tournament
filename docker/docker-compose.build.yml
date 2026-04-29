@@ -1,0 +1,7 @@
+services:
+  app:
+    image: ghcr.io/servald/video-games-tournament/api:0.0.1
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: runner

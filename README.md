@@ -60,6 +60,12 @@ pnpm migration:run          # Appliquer les migrations
 pnpm migration:revert       # Annuler la derniere migration
 ```
 
+## Docker
+
+Pour les workflows Docker (dev dans un container, build de l'image, déploiement prod) :
+
+→ [Documentation Docker](docker/README.md)
+
 ## Arreter la base de donnees
 
 ```bash

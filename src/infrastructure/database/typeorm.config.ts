@@ -1,5 +1,3 @@
-import * as dotenv from 'dotenv';
-dotenv.config({ path: '.env.dev' });
 import { DataSource } from 'typeorm';
 
 export const AppDataSource = new DataSource({

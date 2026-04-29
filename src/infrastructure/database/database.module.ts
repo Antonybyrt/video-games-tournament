@@ -1,3 +1,4 @@
+import { join } from 'path';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -20,6 +21,7 @@ import { TournamentTypeormEntity } from '../repositories/tournament/tournament.t
           MatchTypeormEntity,
           GameTypeormEntity,
         ],
+        migrations: [join(__dirname, 'migrations', '*{.ts,.js}')],
         synchronize: false,
         logging: config.get<string>('NODE_ENV') === 'development',
       }),
