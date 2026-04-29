@@ -4,7 +4,6 @@ import { CreateTournamentUseCase } from '../../application/tournament/use-cases/
 import { DeleteTournamentUseCase } from '../../application/tournament/use-cases/delete-tournament.use-case';
 import { GetTournamentUseCase } from '../../application/tournament/use-cases/get-tournament.use-case';
 import { JoinTournamentUseCase } from '../../application/tournament/use-cases/join-tournament.use-case';
-import { StartTournamentUseCase } from '../../application/match/use-cases/start-tournament.use-case';
 import { ListTournamentsUseCase } from '../../application/tournament/use-cases/list-tournaments.use-case';
 import { UpdateTournamentUseCase } from '../../application/tournament/use-cases/update-tournament.use-case';
 import {
@@ -15,10 +14,6 @@ import {
   ITournamentRepository,
   TOURNAMENT_REPOSITORY,
 } from '../../domain/tournament/tournament.repository.interface';
-import {
-  ITournamentEventsPort,
-  TOURNAMENT_EVENTS,
-} from '../../application/shared/ports/tournament-events.port';
 import { AuthInfrastructureModule } from '../../infrastructure/auth/auth.module';
 import { PlayerTypeormEntity } from '../../infrastructure/repositories/player/player.typeorm-entity';
 import { TournamentTypeormEntity } from '../../infrastructure/repositories/tournament/tournament.typeorm-entity';
@@ -58,9 +53,9 @@ import { TournamentController } from './tournament.controller';
     },
     {
       provide: UpdateTournamentUseCase,
-      useFactory: (repo: ITournamentRepository) =>
-        new UpdateTournamentUseCase(repo),
-      inject: [TOURNAMENT_REPOSITORY],
+      useFactory: (tRepo: ITournamentRepository, mRepo: IMatchRepository) =>
+        new UpdateTournamentUseCase(tRepo, mRepo),
+      inject: [TOURNAMENT_REPOSITORY, MATCH_REPOSITORY],
     },
     {
       provide: DeleteTournamentUseCase,
@@ -73,15 +68,6 @@ import { TournamentController } from './tournament.controller';
       useFactory: (repo: ITournamentRepository) =>
         new JoinTournamentUseCase(repo),
       inject: [TOURNAMENT_REPOSITORY],
-    },
-    {
-      provide: StartTournamentUseCase,
-      useFactory: (
-        tRepo: ITournamentRepository,
-        mRepo: IMatchRepository,
-        events: ITournamentEventsPort,
-      ) => new StartTournamentUseCase(tRepo, mRepo, events),
-      inject: [TOURNAMENT_REPOSITORY, MATCH_REPOSITORY, TOURNAMENT_EVENTS],
     },
   ],
 })

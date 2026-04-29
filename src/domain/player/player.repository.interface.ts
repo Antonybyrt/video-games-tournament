@@ -21,4 +21,5 @@ export interface IPlayerRepository {
   save(player: PlayerEntity): Promise<PlayerEntity>;
   findStats(playerId: string): Promise<PlayerStats>;
   findRankings(): Promise<PlayerRankingRow[]>;
+  delete(id: string): Promise<void>;
 }

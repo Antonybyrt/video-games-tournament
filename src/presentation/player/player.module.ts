@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DeletePlayerUseCase } from '../../application/player/use-cases/delete-player.use-case';
 import { GetGlobalRankingsUseCase } from '../../application/player/use-cases/get-global-rankings.use-case';
 import { GetPlayerStatsUseCase } from '../../application/player/use-cases/get-player-stats.use-case';
 import { GetPlayerTournamentsUseCase } from '../../application/player/use-cases/get-player-tournaments.use-case';
@@ -55,6 +56,14 @@ import { PlayerController } from './player.controller';
       useFactory: (repo: IPlayerRepository) =>
         new GetGlobalRankingsUseCase(repo),
       inject: [PLAYER_REPOSITORY],
+    },
+    {
+      provide: DeletePlayerUseCase,
+      useFactory: (
+        playerRepo: IPlayerRepository,
+        tournamentRepo: ITournamentRepository,
+      ) => new DeletePlayerUseCase(playerRepo, tournamentRepo),
+      inject: [PLAYER_REPOSITORY, TOURNAMENT_REPOSITORY],
     },
   ],
 })

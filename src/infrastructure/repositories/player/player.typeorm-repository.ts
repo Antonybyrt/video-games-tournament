@@ -43,6 +43,10 @@ export class PlayerTypeormRepository implements IPlayerRepository {
     return this.toDomain(saved);
   }
 
+  async delete(id: string): Promise<void> {
+    await this.repo.delete(id);
+  }
+
   async findStats(playerId: string): Promise<PlayerStats> {
     const totalRow = await this.repo.manager
       .createQueryBuilder()
