@@ -10,7 +10,10 @@ export class PlayerResponseDto {
   @ApiProperty({ example: 'player1@example.com' })
   email!: string;
 
-  @ApiPropertyOptional({ example: 'https://example.com/avatar.png', nullable: true })
+  @ApiPropertyOptional({
+    example: 'https://example.com/avatar.png',
+    nullable: true,
+  })
   avatar!: string | null;
 
   @ApiProperty({ example: false })

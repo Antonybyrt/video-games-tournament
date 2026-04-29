@@ -1,17 +1,17 @@
 import { randomUUID } from 'crypto';
 import { MatchEntity } from '../../../domain/match/match.entity';
 import { MatchStatus } from '../../../domain/match/match-status.enum';
-import {
-  IMatchRepository,
-} from '../../../domain/match/match.repository.interface';
+import { IMatchRepository } from '../../../domain/match/match.repository.interface';
 import { ITournamentRepository } from '../../../domain/tournament/tournament.repository.interface';
 import { NotFoundDomainException } from '../../../domain/shared/exceptions/not-found.exception';
 import { BusinessRuleDomainException } from '../../../domain/shared/exceptions/business-rule.exception';
+import { ITournamentEventsPort } from '../../shared/ports/tournament-events.port';
 
 export class StartTournamentUseCase {
   constructor(
     private readonly tournamentRepository: ITournamentRepository,
     private readonly matchRepository: IMatchRepository,
+    private readonly events?: ITournamentEventsPort,
   ) {}
 
   async execute(tournamentId: string): Promise<MatchEntity[]> {
@@ -24,6 +24,7 @@ export class StartTournamentUseCase {
     if (allMatches.length === 0) {
       tournament.start();
       await this.tournamentRepository.save(tournament);
+      this.events?.notifyStatusChanged(tournament.id, tournament.status);
       const playerIds = tournament.players.map((p) => p.id);
       return this.generateRound(playerIds, 1, tournamentId);
     }
@@ -49,6 +50,7 @@ export class StartTournamentUseCase {
     if (winners.length === 1) {
       tournament.complete();
       await this.tournamentRepository.save(tournament);
+      this.events?.notifyStatusChanged(tournament.id, tournament.status);
       return [];
     }
 

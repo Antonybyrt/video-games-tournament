@@ -67,12 +67,13 @@ export class TournamentTypeormRepository implements ITournamentRepository {
   }
 
   async countPlayers(tournamentId: string): Promise<number> {
-    const result = await this.repo
-      .createQueryBuilder('tournament')
-      .innerJoin('tournament.players', 'player')
-      .where('tournament.id = :tournamentId', { tournamentId })
-      .getCount();
-    return result;
+    const result = await this.repo.manager
+      .createQueryBuilder()
+      .select('COUNT(*)', 'count')
+      .from('tournament_players', 'tp')
+      .where('tp.tournament_id = :tournamentId', { tournamentId })
+      .getRawOne<{ count: string }>();
+    return parseInt(result?.count ?? '0', 10);
   }
 
   async isPlayerEnrolled(

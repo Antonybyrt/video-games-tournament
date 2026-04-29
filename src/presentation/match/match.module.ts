@@ -6,15 +6,21 @@ import {
   IMatchRepository,
   MATCH_REPOSITORY,
 } from '../../domain/match/match.repository.interface';
+import {
+  ITournamentEventsPort,
+  TOURNAMENT_EVENTS,
+} from '../../application/shared/ports/tournament-events.port';
 import { AuthInfrastructureModule } from '../../infrastructure/auth/auth.module';
 import { MatchTypeormEntity } from '../../infrastructure/repositories/match/match.typeorm-entity';
 import { MatchTypeormRepository } from '../../infrastructure/repositories/match/match.typeorm-repository';
+import { EventsModule } from '../events/events.module';
 import { MatchController } from './match.controller';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([MatchTypeormEntity]),
     AuthInfrastructureModule,
+    EventsModule,
   ],
   controllers: [MatchController],
   exports: [MATCH_REPOSITORY, ListTournamentMatchesUseCase],
@@ -28,9 +34,9 @@ import { MatchController } from './match.controller';
     },
     {
       provide: SubmitMatchResultUseCase,
-      useFactory: (repo: IMatchRepository) =>
-        new SubmitMatchResultUseCase(repo),
-      inject: [MATCH_REPOSITORY],
+      useFactory: (repo: IMatchRepository, events: ITournamentEventsPort) =>
+        new SubmitMatchResultUseCase(repo, events),
+      inject: [MATCH_REPOSITORY, TOURNAMENT_EVENTS],
     },
   ],
 })

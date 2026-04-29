@@ -12,20 +12,26 @@ import { TournamentTypeormEntity } from '../repositories/tournament/tournament.t
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres' as const,
-        url: config.getOrThrow<string>('DATABASE_URL'),
-        entities: [
-          PlayerTypeormEntity,
-          TournamentTypeormEntity,
-          MatchTypeormEntity,
-          GameTypeormEntity,
-        ],
-        migrations: [join(__dirname, 'migrations', '*{.ts,.js}')],
-        synchronize: config.get<string>('NODE_ENV') === 'development',
-        autoLoadEntities: config.get<string>('NODE_ENV') === 'development',
-        logging: config.get<string>('NODE_ENV') === 'development',
-      }),
+      useFactory: (config: ConfigService) => {
+        const env = config.get<string>('NODE_ENV');
+        const isDev = env === 'development';
+        const isTest = env === 'test';
+        return {
+          type: 'postgres' as const,
+          url: config.getOrThrow<string>('DATABASE_URL'),
+          entities: [
+            PlayerTypeormEntity,
+            TournamentTypeormEntity,
+            MatchTypeormEntity,
+            GameTypeormEntity,
+          ],
+          migrations: [join(__dirname, 'migrations', '*{.ts,.js}')],
+          synchronize: isDev || isTest,
+          autoLoadEntities: isDev || isTest,
+          dropSchema: isTest,
+          logging: isDev,
+        };
+      },
     }),
   ],
   exports: [TypeOrmModule],

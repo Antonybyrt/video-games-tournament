@@ -15,10 +15,15 @@ import {
   ITournamentRepository,
   TOURNAMENT_REPOSITORY,
 } from '../../domain/tournament/tournament.repository.interface';
+import {
+  ITournamentEventsPort,
+  TOURNAMENT_EVENTS,
+} from '../../application/shared/ports/tournament-events.port';
 import { AuthInfrastructureModule } from '../../infrastructure/auth/auth.module';
 import { PlayerTypeormEntity } from '../../infrastructure/repositories/player/player.typeorm-entity';
 import { TournamentTypeormEntity } from '../../infrastructure/repositories/tournament/tournament.typeorm-entity';
 import { TournamentTypeormRepository } from '../../infrastructure/repositories/tournament/tournament.typeorm-repository';
+import { EventsModule } from '../events/events.module';
 import { MatchModule } from '../match/match.module';
 import { TournamentController } from './tournament.controller';
 
@@ -27,6 +32,7 @@ import { TournamentController } from './tournament.controller';
     TypeOrmModule.forFeature([TournamentTypeormEntity, PlayerTypeormEntity]),
     AuthInfrastructureModule,
     MatchModule,
+    EventsModule,
   ],
   controllers: [TournamentController],
   exports: [TOURNAMENT_REPOSITORY, TypeOrmModule],
@@ -70,9 +76,12 @@ import { TournamentController } from './tournament.controller';
     },
     {
       provide: StartTournamentUseCase,
-      useFactory: (tRepo: ITournamentRepository, mRepo: IMatchRepository) =>
-        new StartTournamentUseCase(tRepo, mRepo),
-      inject: [TOURNAMENT_REPOSITORY, MATCH_REPOSITORY],
+      useFactory: (
+        tRepo: ITournamentRepository,
+        mRepo: IMatchRepository,
+        events: ITournamentEventsPort,
+      ) => new StartTournamentUseCase(tRepo, mRepo, events),
+      inject: [TOURNAMENT_REPOSITORY, MATCH_REPOSITORY, TOURNAMENT_EVENTS],
     },
   ],
 })

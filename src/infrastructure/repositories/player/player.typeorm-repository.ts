@@ -48,10 +48,10 @@ export class PlayerTypeormRepository implements IPlayerRepository {
       .createQueryBuilder()
       .select('COUNT(*)', 'total')
       .from('matches', 'm')
-      .where(
-        '(m.player1_id = :id OR m.player2_id = :id) AND m.status = :s',
-        { id: playerId, s: MatchStatus.COMPLETED },
-      )
+      .where('(m.player1_id = :id OR m.player2_id = :id) AND m.status = :s', {
+        id: playerId,
+        s: MatchStatus.COMPLETED,
+      })
       .getRawOne<{ total: string }>();
 
     const winsRow = await this.repo.manager
