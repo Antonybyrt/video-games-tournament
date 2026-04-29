@@ -4,8 +4,13 @@ import { CreateTournamentUseCase } from '../../application/tournament/use-cases/
 import { DeleteTournamentUseCase } from '../../application/tournament/use-cases/delete-tournament.use-case';
 import { GetTournamentUseCase } from '../../application/tournament/use-cases/get-tournament.use-case';
 import { JoinTournamentUseCase } from '../../application/tournament/use-cases/join-tournament.use-case';
+import { StartTournamentUseCase } from '../../application/match/use-cases/start-tournament.use-case';
 import { ListTournamentsUseCase } from '../../application/tournament/use-cases/list-tournaments.use-case';
 import { UpdateTournamentUseCase } from '../../application/tournament/use-cases/update-tournament.use-case';
+import {
+  IMatchRepository,
+  MATCH_REPOSITORY,
+} from '../../domain/match/match.repository.interface';
 import {
   ITournamentRepository,
   TOURNAMENT_REPOSITORY,
@@ -62,6 +67,12 @@ import { TournamentController } from './tournament.controller';
       useFactory: (repo: ITournamentRepository) =>
         new JoinTournamentUseCase(repo),
       inject: [TOURNAMENT_REPOSITORY],
+    },
+    {
+      provide: StartTournamentUseCase,
+      useFactory: (tRepo: ITournamentRepository, mRepo: IMatchRepository) =>
+        new StartTournamentUseCase(tRepo, mRepo),
+      inject: [TOURNAMENT_REPOSITORY, MATCH_REPOSITORY],
     },
   ],
 })
