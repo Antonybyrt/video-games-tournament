@@ -1,0 +1,42 @@
+services:
+  migrate:
+    image: ghcr.io/servald/video-games-tournament/api:0.0.1
+    container_name: tournament_migrate_prod
+    command: node node_modules/typeorm/cli.js migration:run -d dist/infrastructure/database/typeorm.config.js
+    env_file:
+      - ../.env.prod
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    image: ghcr.io/servald/video-games-tournament/api:0.0.1
+    container_name: tournament_app_prod
+    ports:
+      - '3000:3000'
+    env_file:
+      - ../.env.prod
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: always
+
+  db:
+    image: postgres:16-alpine
+    container_name: tournament_db_prod
+    env_file:
+      - ../.env.prod
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+volumes:
+  postgres_prod_data:
