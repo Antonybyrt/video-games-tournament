@@ -6,16 +6,20 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegisterDto {
+  @ApiProperty({ example: 'player1' })
   @IsString()
   @MinLength(3)
   @MaxLength(50)
   username!: string;
 
+  @ApiProperty({ example: 'player1@example.com' })
   @IsEmail()
   email!: string;
 
+  @ApiProperty({ example: 'Password1' })
   @IsString()
   @MinLength(8)
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
@@ -23,6 +27,7 @@ export class RegisterDto {
   })
   password!: string;
 
+  @ApiPropertyOptional({ example: 'https://example.com/avatar.png' })
   @IsOptional()
   @IsString()
   avatar?: string;
