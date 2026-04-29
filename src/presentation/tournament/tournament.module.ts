@@ -3,8 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CreateTournamentUseCase } from '../../application/tournament/use-cases/create-tournament.use-case';
 import { DeleteTournamentUseCase } from '../../application/tournament/use-cases/delete-tournament.use-case';
 import { GetTournamentUseCase } from '../../application/tournament/use-cases/get-tournament.use-case';
+import { GetTournamentBracketUseCase } from '../../application/tournament/use-cases/get-tournament-bracket.use-case';
 import { JoinTournamentUseCase } from '../../application/tournament/use-cases/join-tournament.use-case';
-import { StartTournamentUseCase } from '../../application/match/use-cases/start-tournament.use-case';
 import { ListTournamentsUseCase } from '../../application/tournament/use-cases/list-tournaments.use-case';
 import { UpdateTournamentUseCase } from '../../application/tournament/use-cases/update-tournament.use-case';
 import {
@@ -19,6 +19,7 @@ import { AuthInfrastructureModule } from '../../infrastructure/auth/auth.module'
 import { PlayerTypeormEntity } from '../../infrastructure/repositories/player/player.typeorm-entity';
 import { TournamentTypeormEntity } from '../../infrastructure/repositories/tournament/tournament.typeorm-entity';
 import { TournamentTypeormRepository } from '../../infrastructure/repositories/tournament/tournament.typeorm-repository';
+import { EventsModule } from '../events/events.module';
 import { MatchModule } from '../match/match.module';
 import { TournamentController } from './tournament.controller';
 
@@ -27,6 +28,7 @@ import { TournamentController } from './tournament.controller';
     TypeOrmModule.forFeature([TournamentTypeormEntity, PlayerTypeormEntity]),
     AuthInfrastructureModule,
     MatchModule,
+    EventsModule,
   ],
   controllers: [TournamentController],
   exports: [TOURNAMENT_REPOSITORY, TypeOrmModule],
@@ -45,6 +47,12 @@ import { TournamentController } from './tournament.controller';
       inject: [TOURNAMENT_REPOSITORY],
     },
     {
+      provide: GetTournamentBracketUseCase,
+      useFactory: (tRepo: ITournamentRepository, mRepo: IMatchRepository) =>
+        new GetTournamentBracketUseCase(tRepo, mRepo),
+      inject: [TOURNAMENT_REPOSITORY, MATCH_REPOSITORY],
+    },
+    {
       provide: ListTournamentsUseCase,
       useFactory: (repo: ITournamentRepository) =>
         new ListTournamentsUseCase(repo),
@@ -52,9 +60,9 @@ import { TournamentController } from './tournament.controller';
     },
     {
       provide: UpdateTournamentUseCase,
-      useFactory: (repo: ITournamentRepository) =>
-        new UpdateTournamentUseCase(repo),
-      inject: [TOURNAMENT_REPOSITORY],
+      useFactory: (tRepo: ITournamentRepository, mRepo: IMatchRepository) =>
+        new UpdateTournamentUseCase(tRepo, mRepo),
+      inject: [TOURNAMENT_REPOSITORY, MATCH_REPOSITORY],
     },
     {
       provide: DeleteTournamentUseCase,
@@ -67,12 +75,6 @@ import { TournamentController } from './tournament.controller';
       useFactory: (repo: ITournamentRepository) =>
         new JoinTournamentUseCase(repo),
       inject: [TOURNAMENT_REPOSITORY],
-    },
-    {
-      provide: StartTournamentUseCase,
-      useFactory: (tRepo: ITournamentRepository, mRepo: IMatchRepository) =>
-        new StartTournamentUseCase(tRepo, mRepo),
-      inject: [TOURNAMENT_REPOSITORY, MATCH_REPOSITORY],
     },
   ],
 })

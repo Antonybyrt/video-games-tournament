@@ -44,9 +44,9 @@ docker login ghcr.io -u <username> -p <token>
 
 Le token doit avoir le scope `write:packages` (GitHub → Settings → Developer settings → Personal access tokens).
 
-### 2. Ajuster le nom d'utilisateur
+### 2. Ajuster le nom d'image
 
-Dans `docker/docker-compose.build.yml` et `docker/docker-compose.prod.yml`, remplacer le champ `image` :
+L'image utilisée par `docker-compose.prod.yml` est paramétrable via la variable d'env `APP_IMAGE` (défaut : `ghcr.io/servald/video-games-tournament/api:latest`). Pour publier votre propre image, ajustez `docker/docker-compose.build.yml` :
 
 ```yaml
 image: ghcr.io/<username>/video-games-tournament/api:0.0.1
@@ -63,9 +63,15 @@ docker compose -f docker/docker-compose.build.yml push
 
 ## Prod
 
-### 1. Ajuster le nom d'utilisateur
+### 1. Choisir l'image à déployer
 
-Vérifier que le champ `image` dans `docker/docker-compose.prod.yml` correspond à l'image publiée lors du build.
+Définir `APP_IMAGE` dans `.env.prod` pour pointer vers l'image publiée :
+
+```env
+APP_IMAGE=ghcr.io/<username>/video-games-tournament/api:0.0.1
+```
+
+Sans cette variable, l'image par défaut `ghcr.io/servald/video-games-tournament/api:latest` est utilisée.
 
 ### 2. Créer `.env.prod`
 

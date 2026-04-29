@@ -38,7 +38,10 @@ export class UpdateTournamentDto {
   @IsDateString()
   startDate?: string;
 
-  @ApiPropertyOptional({ enum: TournamentStatus, example: TournamentStatus.PENDING })
+  @ApiPropertyOptional({
+    enum: TournamentStatus,
+    example: TournamentStatus.PENDING,
+  })
   @IsOptional()
   @IsEnum(TournamentStatus)
   status?: TournamentStatus;

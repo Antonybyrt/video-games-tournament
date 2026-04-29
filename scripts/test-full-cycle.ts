@@ -134,36 +134,90 @@ async function main() {
     ok(`player${i + 1} joined`);
   }
 
-  // ─── 5. Bracket rounds ─────────────────────────────────────────────────────
+  // ─── 5. Start + bracket auto-avancement ───────────────────────────────────
   console.log('\n=== Tournament bracket ===');
 
-  let round = 0;
-  while (true) {
-    round++;
-    console.log(`\n--- Round ${round} ---`);
+  const startRes = await api('PUT', `/tournaments/${tournamentId}`, {
+    token: adminToken,
+    body: { status: 'in_progress' },
+  });
+  if (startRes.status !== 200) fail(`start tournament (${startRes.status})`);
+  ok('Tournament started — round 1 generated');
 
-    const startRes = await api<Array<{ id: string; status: string; player1Id: string }>>('POST', `/tournaments/${tournamentId}/start`, {
+  type MatchDto = { id: string; status: string; player1Id: string; player2Id: string };
+
+  // ── Guard test: try to complete after only 1 match submitted ────────────────
+  console.log('\n=== Guard: cannot complete unfinished tournament ===');
+
+  const firstMatchRes = await api<MatchDto[]>('GET', `/tournaments/${tournamentId}/matches`, {
+    token: adminToken,
+  });
+  if (firstMatchRes.status !== 200) fail(`get matches for guard test (${firstMatchRes.status})`);
+
+  const firstPending = (firstMatchRes.data as MatchDto[]).filter(
+    (m) => m.status !== 'completed' && m.player1Id !== m.player2Id,
+  );
+  if (firstPending.length === 0) fail('No pending match found for guard test');
+
+  // Submit exactly 1 match
+  const guardMatch = firstPending[0];
+  const guardSubmit = await api('POST', `/matches/${guardMatch.id}/result`, {
+    token: adminToken,
+    body: { winnerId: guardMatch.player1Id, score: '3:1' },
+  });
+  if (guardSubmit.status !== 200) fail(`guard test: submit match (${guardSubmit.status})`);
+  ok(`Guard test: submitted 1 match (${guardMatch.id})`);
+
+  // Try to complete — must be rejected with 422
+  const earlyComplete = await api('PUT', `/tournaments/${tournamentId}`, {
+    token: adminToken,
+    body: { status: 'completed' },
+  });
+  if (earlyComplete.status !== 422) {
+    fail(`Guard test: expected 422 on early complete, got ${earlyComplete.status}`);
+  }
+  ok('Guard test: complete correctly rejected (422) — bracket not finished');
+
+  // ── Now resolve all remaining matches ───────────────────────────────────────
+  let lastSubmittedId: string | null = guardMatch.id;
+  while (true) {
+    const mRes = await api<MatchDto[]>('GET', `/tournaments/${tournamentId}/matches`, {
       token: adminToken,
     });
-    if (startRes.status !== 201) fail(`start round ${round} (${startRes.status})`);
+    if (mRes.status !== 200) fail(`get matches (${mRes.status})`);
 
-    const matches = startRes.data as Array<{ id: string; status: string; player1Id: string }>;
-    const pending = matches.filter((m) => m.status === 'pending');
+    const allMatches = mRes.data as MatchDto[];
+    // Real unresolved matches only (not byes)
+    const pending = allMatches.filter(
+      (m) => m.status !== 'completed' && m.player1Id !== m.player2Id,
+    );
 
     if (pending.length === 0) {
-      ok('Tournament completed — no more matches');
+      ok('All real matches resolved — 1 winner remains');
       break;
     }
 
-    for (const match of pending) {
-      const res = await api('POST', `/matches/${match.id}/result`, {
-        token: adminToken,
-        body: { winnerId: match.player1Id, score: '3:1' },
-      });
-      if (res.status !== 200) fail(`submit result ${match.id} (${res.status})`);
-      ok(`match ${match.id} → winner ${match.player1Id}`);
+    // Detect a true loop: the match we just submitted is still pending (not completed)
+    if (lastSubmittedId && pending.some((m) => m.id === lastSubmittedId)) {
+      fail('No progress detected — possible infinite loop');
     }
+
+    const match = pending[0];
+    lastSubmittedId = match.id;
+    const res = await api('POST', `/matches/${match.id}/result`, {
+      token: adminToken,
+      body: { winnerId: match.player1Id, score: '3:1' },
+    });
+    if (res.status !== 200) fail(`submit result ${match.id} (${res.status})`);
+    ok(`match ${match.id} → winner ${match.player1Id}`);
   }
+
+  const completeRes = await api('PUT', `/tournaments/${tournamentId}`, {
+    token: adminToken,
+    body: { status: 'completed' },
+  });
+  if (completeRes.status !== 200) fail(`complete tournament (${completeRes.status})`);
+  ok('Tournament completed');
 
   // ─── 6. Stats & Rankings ───────────────────────────────────────────────────
   console.log('\n=== Stats & Rankings ===');
